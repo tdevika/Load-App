@@ -1,6 +1,7 @@
 package com.udacity
 
 import android.os.Bundle
+import android.view.animation.AlphaAnimation
 import androidx.appcompat.app.AppCompatActivity
 import com.udacity.utils.NotificationUtils
 import kotlinx.android.synthetic.main.activity_detail.*
@@ -23,9 +24,11 @@ class DetailActivity : AppCompatActivity() {
         } else {
             "Fail"
         })
-        motion_layout.transitionToEnd()
 
         back_button.setOnClickListener {
+            val alphaAnimation = AlphaAnimation(1.0f,0.0f)
+            alphaAnimation.duration=2000
+            back_button.startAnimation(alphaAnimation)
             finish()
         }
     }

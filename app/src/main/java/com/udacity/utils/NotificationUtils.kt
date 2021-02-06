@@ -17,8 +17,8 @@ object NotificationUtils {
     private const val REQUEST_CODE_DOWNLOADS = 100
     fun getChannelInfo(context: Context): ChannelInfo {
         return ChannelInfo(
-            "downloadsID",
-            "DownLoads",
+            "downloads",
+            "Downloads",
             "DownLoading Files",
             NotificationManager.IMPORTANCE_HIGH,
             NotificationCompat.PRIORITY_HIGH,
@@ -67,7 +67,7 @@ object NotificationUtils {
         val downloadChannel = getChannelInfo(context)
 
         val notification = NotificationCompat.Builder(context, downloadChannel.id)
-            .setContentTitle(fileName)
+            .setContentTitle(context.getString(R.string.notification_title))
             .setContentText(
                 if (status == DownloadStatus.SUCCESS) {
                     context.getString(R.string.success)

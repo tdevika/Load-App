@@ -20,13 +20,10 @@ import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private var downloadID: Long = 0
-
     private lateinit var downloadManager: DownloadManager
-    private lateinit var notificationManager: NotificationManager
-    private lateinit var pendingIntent: PendingIntent
-    private lateinit var action: NotificationCompat.Action
-
+    private var fileIds = mutableSetOf<Long>()
+    private var filesDownloaded = 0
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -45,55 +42,65 @@ class MainActivity : AppCompatActivity() {
             when (radio_group.checkedRadioButtonId) {
                 R.id.load_app -> {
                     download(URL)
-                    custom_button.setState(ButtonState.Loading)
+                    custom_button.setState(LoadingButton.State.LOADING)
                 }
                 R.id.glide -> {
                     download(URL_GLIDE)
-                    custom_button.setState(ButtonState.Loading)
+                    custom_button.setState(LoadingButton.State.LOADING)
                 }
                 R.id.retrofit -> {
                     download(URL_RETROFIT)
-                    custom_button.setState(ButtonState.Loading)
+                    custom_button.setState(LoadingButton.State.LOADING)
                 }
                 else -> Toast.makeText(this, "Please Select a file to download", Toast.LENGTH_LONG)
                     .show()
             }
         }
     }
-
+    
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-            val extras = intent!!.extras
-            val query = DownloadManager.Query()
-                .setFilterById(extras!!.getLong(DownloadManager.EXTRA_DOWNLOAD_ID))
-            val cursor = downloadManager.query(query)
-            if (cursor.moveToFirst()) {
-                val status = cursor.getInt(
-                    cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-                )
-                val fileName = cursor.getString(
-                    cursor.getColumnIndex(DownloadManager.COLUMN_TITLE)
-                )
-                when (status) {
-                    DownloadManager.STATUS_SUCCESSFUL -> NotificationUtils.sendDownloadNotification(
-                        this@MainActivity,
-                        id!!.toInt(),
-                        DownloadStatus.SUCCESS,
-                        fileName
+            val downloadId = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            if (fileIds.remove(downloadId)) {
+                if (--filesDownloaded == 0) {
+                    custom_button.setState(LoadingButton.State.COMPLETE)
+                }
+                
+                val extras = intent!!.extras
+                val query = DownloadManager.Query()
+                        .setFilterById(extras!!.getLong(DownloadManager.EXTRA_DOWNLOAD_ID))
+                val cursor = downloadManager.query(query)
+                
+                if (cursor.moveToFirst()) {
+                    val status = cursor.getInt(
+                            cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
                     )
-                    DownloadManager.STATUS_FAILED -> NotificationUtils.sendDownloadNotification(
-                        this@MainActivity,
-                        id!!.toInt(),
-                        DownloadStatus.FAIL,
-                        fileName
+                    val fileName = cursor.getString(
+                            cursor.getColumnIndex(DownloadManager.COLUMN_TITLE)
                     )
+                    when (status) {
+                        DownloadManager.STATUS_SUCCESSFUL -> {
+                            NotificationUtils.sendDownloadNotification(
+                                    this@MainActivity,
+                                    downloadId!!.toInt(),
+                                    DownloadStatus.SUCCESS,
+                                    fileName
+                            )
+                        }
+                        DownloadManager.STATUS_FAILED -> {
+                            NotificationUtils.sendDownloadNotification(
+                                    this@MainActivity,
+                                    downloadId!!.toInt(),
+                                    DownloadStatus.FAIL,
+                                    fileName
+                            )
+                        }
+                    }
                 }
             }
-
         }
     }
-
+  
     private fun download(url: String) {
         val request =
             DownloadManager.Request(Uri.parse(url))
@@ -104,8 +111,8 @@ class MainActivity : AppCompatActivity() {
                 .setAllowedOverRoaming(true)
 
         downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-        downloadID =
-            downloadManager.enqueue(request)// enqueue puts the download request in the queue.
+        fileIds.add(downloadManager.enqueue(request))
+        filesDownloaded++
     }
 
     companion object {

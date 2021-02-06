@@ -28,9 +28,6 @@
         android:layout_height="wrap_content"
         android:textColor="@color/colorPrimaryDark"
         android:textSize="18sp"
-        app:layout_constraintBaseline_toBaselineOf="@id/file_name_label"
-        app:layout_constraintStart_toStartOf="@id/guideline"
-        app:layout_constraintTop_toTopOf="parent"
         tools:text="File Name"
 
         />
@@ -59,10 +56,19 @@
         android:layout_height="wrap_content"
         android:textSize="18sp"
         android:textColor="@color/colorPrimaryDark"
-        app:layout_constraintBaseline_toBaselineOf="@id/download_status_label"
-        app:layout_constraintStart_toStartOf="@id/guideline"
         app:layout_constraintTop_toBottomOf="@id/file_name"
         tools:text="SUCCESS" />
+    <Button
+        android:id="@+id/back_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="Ok"
+        android:textStyle="bold"
+        android:textColor="@color/cardview_light_background"
+        android:background="@color/colorAccent"
+        android:layout_margin="@dimen/fab_margin"
+        />
 
 
 </androidx.constraintlayout.motion.widget.MotionLayout>
